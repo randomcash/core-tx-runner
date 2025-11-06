@@ -18,8 +18,13 @@ cargo run -- transactions.csv > accounts.csv
 5. **Streaming** - Memory efficient, handles large files
 
 ## Test Coverage
-
-**Tests** covering: basic ops, dispute flows, edge cases, invalid references, precision, whitespace, boundary values (u16/u32 MAX)
+**Test files:**
+- `simple.csv` - Basic deposits/withdrawals (2 clients)
+- `disputes.csv` - Dispute→resolve and dispute→chargeback flows with account locking
+- `edge_cases.csv` - Insufficient funds, double disputes, locked accounts, 4dp precision
+- `invalid_references.csv` - Non-existent tx, non-disputed tx, wrong client operations
+- `whitespace.csv` - CSV parser whitespace tolerance
+- `large_ids.csv` - Boundary values (u16::MAX client, u32::MAX transaction)
 
 ## Assumptions
 
