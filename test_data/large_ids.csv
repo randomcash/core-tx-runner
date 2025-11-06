@@ -1,0 +1,6 @@
+type,client,tx,amount
+deposit,65535,4294967295,1000.0
+deposit,1,1,500.0
+withdrawal,65535,4294967294,250.0
+dispute,65535,4294967295,
+resolve,65535,4294967295,
