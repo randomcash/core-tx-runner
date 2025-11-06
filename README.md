@@ -33,3 +33,7 @@ cargo run -- transactions.csv > accounts.csv
 - Clients lazy-created on first transaction
 - Negative available allowed (withdraw then dispute deposit)
 - Output row order non-deterministic
+
+## Documentation
+
+See `memos/specs_and_implementation.md` for detailed development session notes
