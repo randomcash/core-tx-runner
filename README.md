@@ -5,51 +5,26 @@ Rust-based payments engine that processes CSV transactions, handles disputes/cha
 ## Quick Start
 
 ```bash
-cargo build
-cargo test
+cargo build          # No warnings/errors
+cargo test           # 21 tests passing
 cargo run -- transactions.csv > accounts.csv
 ```
 
-## Architecture
+## Implementation
+1. **Deposits only disputed** - Withdrawals cannot be disputed
+2. **Disputes hold funds** - available→held (total unchanged)
+3. **Chargebacks lock permanently** - All future ops fail including deposits
+4. **Silent failures** - Invalid ops ignored (insufficient funds, double disputes, etc.)
+5. **Streaming** - Memory efficient, handles large files
 
-### Core Types (`src/types.rs`)
-- `Account` - Client account with available/held/total funds and locked status
-- `StoredTransaction` - Transaction history for dispute tracking (only deposits can be disputed)
-- `TransactionRecord` - CSV input record (amount optional for dispute/resolve/chargeback)
-- `TransactionType` - Deposit, Withdrawal, Dispute, Resolve, Chargeback
+## Test Coverage
 
-### CSV Parser (`src/csv_parser.rs`)
-Stream-based parser with whitespace trimming and flexible field handling. Uses `rust_decimal` for 4-decimal precision.
-
-## Test Data
-
-- **simple.csv** - Basic deposits and withdrawals
-- **disputes.csv** - Dispute→resolve and dispute→chargeback flows, account locking
-- **edge_cases.csv** - Insufficient funds, double disputes, locked account operations, decimal precision
-- **whitespace.csv** - Parser whitespace tolerance
-- **large_ids.csv** - Boundary testing (u16::MAX, u32::MAX)
-
-## Key Rules
-
-1. **Only deposits can be disputed** (withdrawals cannot)
-2. **Disputes hold funds** (available→held, total unchanged)
-3. **Chargebacks lock accounts permanently** (all future transactions fail)
-4. **Silent failures** (invalid operations don't output errors)
-5. **Streaming parser** (memory efficient for large files)
+**Tests** covering: basic ops, dispute flows, edge cases, invalid references, precision, whitespace, boundary values (u16/u32 MAX)
 
 ## Assumptions
 
-- Transactions processed in chronological order (file order)
+- Transactions processed in file order (chronological)
 - Transaction IDs globally unique
-- Clients created on-demand
-- Locked accounts reject ALL operations including deposits
-- Decimals display with up to 4 places
-
-## Dependencies
-
-```toml
-csv = "1.3"
-serde = { version = "1.0", features = ["derive"] }
-rust_decimal = { version = "1.35", features = ["serde-float"] }
-rust_decimal_macros = "1.35"
-```
+- Clients lazy-created on first transaction
+- Negative available allowed (withdraw then dispute deposit)
+- Output row order non-deterministic
