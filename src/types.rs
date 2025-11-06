@@ -49,11 +49,10 @@ where
     match Option::<MaybeDecimal>::deserialize(deserializer)? {
         Some(MaybeDecimal::Value(v)) => Ok(Some(v)),
         Some(MaybeDecimal::EmptyString(s)) if s.trim().is_empty() => Ok(None),
-        Some(MaybeDecimal::EmptyString(s)) => {
-            s.parse::<Decimal>()
-                .map(Some)
-                .map_err(|e| Error::custom(format!("Invalid decimal: {}", e)))
-        }
+        Some(MaybeDecimal::EmptyString(s)) => s
+            .parse::<Decimal>()
+            .map(Some)
+            .map_err(|e| Error::custom(format!("Invalid decimal: {}", e))),
         None => Ok(None),
     }
 }

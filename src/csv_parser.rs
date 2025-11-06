@@ -28,9 +28,7 @@ impl<R: io::Read> TransactionReader<R> {
             .flexible(true) // Allow variable number of fields (amount can be empty)
             .from_reader(reader);
 
-        Self {
-            reader: csv_reader,
-        }
+        Self { reader: csv_reader }
     }
 
     /// Get an iterator over transaction records
@@ -65,10 +63,10 @@ mod tests {
     #[test]
     fn test_parse_simple_transactions() {
         let data = "\
-type,client,tx,amount
-deposit,1,1,1.0
-withdrawal,1,2,0.5
-";
+            type,client,tx,amount
+            deposit,1,1,1.0
+            withdrawal,1,2,0.5
+        ";
         let reader = TransactionReader::from_reader(data.as_bytes());
         let records: Result<Vec<_>, _> = reader.records().collect();
         let records = records.expect("Failed to parse CSV");
@@ -91,12 +89,12 @@ withdrawal,1,2,0.5
     #[test]
     fn test_parse_dispute_transactions() {
         let data = "\
-type,client,tx,amount
-deposit,1,1,100.0
-dispute,1,1,
-resolve,1,1,
-chargeback,1,1,
-";
+            type,client,tx,amount
+            deposit,1,1,100.0
+            dispute,1,1,
+            resolve,1,1,
+            chargeback,1,1,
+        ";
         let reader = TransactionReader::from_reader(data.as_bytes());
         let records: Result<Vec<_>, _> = reader.records().collect();
         let records = records.expect("Failed to parse CSV");
@@ -125,11 +123,11 @@ chargeback,1,1,
     #[test]
     fn test_parse_with_whitespace() {
         let data = "\
-type, client, tx, amount
-deposit, 1, 1, 1.0
-withdrawal,  2,  2,  0.5
-dispute,  1,  1,
-";
+            type, client, tx, amount
+            deposit, 1, 1, 1.0
+            withdrawal,  2,  2,  0.5
+            dispute,  1,  1,
+        ";
         let reader = TransactionReader::from_reader(data.as_bytes());
         let records: Result<Vec<_>, _> = reader.records().collect();
         let records = records.expect("Failed to parse CSV");
@@ -146,11 +144,11 @@ dispute,  1,  1,
     #[test]
     fn test_parse_decimal_precision() {
         let data = "\
-type,client,tx,amount
-deposit,1,1,1.1234
-deposit,2,2,10.5
-deposit,3,3,100
-";
+            type,client,tx,amount
+            deposit,1,1,1.1234
+            deposit,2,2,10.5
+            deposit,3,3,100
+        ";
         let reader = TransactionReader::from_reader(data.as_bytes());
         let records: Result<Vec<_>, _> = reader.records().collect();
         let records = records.expect("Failed to parse CSV");
@@ -164,12 +162,12 @@ deposit,3,3,100
     #[test]
     fn test_parse_multiple_clients() {
         let data = "\
-type,client,tx,amount
-deposit,1,1,100.0
-deposit,2,2,200.0
-deposit,1,3,50.0
-withdrawal,2,4,100.0
-";
+            type,client,tx,amount
+            deposit,1,1,100.0
+            deposit,2,2,200.0
+            deposit,1,3,50.0
+            withdrawal,2,4,100.0
+        ";
         let reader = TransactionReader::from_reader(data.as_bytes());
         let records: Result<Vec<_>, _> = reader.records().collect();
         let records = records.expect("Failed to parse CSV");
@@ -185,10 +183,10 @@ withdrawal,2,4,100.0
     fn test_parse_large_transaction_ids() {
         // Test u32 max range
         let data = "\
-type,client,tx,amount
-deposit,1,4294967295,100.0
-deposit,2,1,50.0
-";
+            type,client,tx,amount
+            deposit,1,4294967295,100.0
+            deposit,2,1,50.0
+        ";
         let reader = TransactionReader::from_reader(data.as_bytes());
         let records: Result<Vec<_>, _> = reader.records().collect();
         let records = records.expect("Failed to parse CSV");
@@ -201,9 +199,9 @@ deposit,2,1,50.0
     #[test]
     fn test_invalid_transaction_type() {
         let data = "\
-type,client,tx,amount
-invalid,1,1,100.0
-";
+            type,client,tx,amount
+            invalid,1,1,100.0
+        ";
         let reader = TransactionReader::from_reader(data.as_bytes());
         let result: Result<Vec<_>, _> = reader.records().collect();
 
@@ -215,9 +213,9 @@ invalid,1,1,100.0
     fn test_invalid_client_id() {
         // u16 max is 65535
         let data = "\
-type,client,tx,amount
-deposit,65536,1,100.0
-";
+            type,client,tx,amount
+            deposit,65536,1,100.0
+        ";
         let reader = TransactionReader::from_reader(data.as_bytes());
         let result: Result<Vec<_>, _> = reader.records().collect();
 
@@ -238,8 +236,8 @@ deposit,65536,1,100.0
     #[test]
     fn test_parse_from_file() {
         // Test reading from actual file
-        let reader = TransactionReader::from_file("test_data/simple.csv")
-            .expect("Failed to open test file");
+        let reader =
+            TransactionReader::from_file("test_data/simple.csv").expect("Failed to open test file");
         let records: Result<Vec<_>, _> = reader.records().collect();
         let records = records.expect("Failed to parse CSV");
 
