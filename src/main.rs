@@ -249,4 +249,32 @@ mod tests {
         assert_eq!(client3.total, dec!(0));
         assert!(client3.locked);
     }
+
+    #[test]
+    fn test_invalid_references() {
+        use rust_decimal_macros::dec;
+
+        let accounts = process_file("test_data/invalid_references.csv").expect("Failed to process");
+
+        // Client 1: Only deposit, all invalid dispute/resolve/chargeback ignored
+        let client1 = accounts.get(&1).expect("Client 1 not found");
+        assert_eq!(client1.available, dec!(100));
+        assert_eq!(client1.held, dec!(0));
+        assert_eq!(client1.total, dec!(100));
+        assert!(!client1.locked);
+
+        // Client 2: Deposit, resolve on non-disputed ignored, then dispute+resolve
+        let client2 = accounts.get(&2).expect("Client 2 not found");
+        assert_eq!(client2.available, dec!(200));
+        assert_eq!(client2.held, dec!(0));
+        assert_eq!(client2.total, dec!(200));
+        assert!(!client2.locked);
+
+        // Client 3: Deposit, chargeback on non-disputed ignored, then dispute + chargeback on non-existent
+        let client3 = accounts.get(&3).expect("Client 3 not found");
+        assert_eq!(client3.available, dec!(0));
+        assert_eq!(client3.held, dec!(300));
+        assert_eq!(client3.total, dec!(300));
+        assert!(!client3.locked); // Not locked because chargeback referenced non-existent tx
+    }
 }
