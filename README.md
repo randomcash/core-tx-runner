@@ -11,11 +11,12 @@ cargo run -- transactions.csv > accounts.csv
 ```
 
 ## Implementation
-1. **Deposits only disputed** - Withdrawals cannot be disputed
-2. **Disputes hold funds** - available→held (total unchanged)
-3. **Chargebacks lock permanently** - All future ops fail including deposits
-4. **Silent failures** - Invalid ops ignored (insufficient funds, double disputes, etc.)
-5. **Streaming** - Memory efficient, handles large files
+1. **Unique transaction IDs enforced** - Duplicate TX IDs silently rejected
+2. **Deposits only disputed** - Withdrawals cannot be disputed
+3. **Disputes hold funds** - available→held (total unchanged)
+4. **Chargebacks lock permanently** - All future ops fail including deposits
+5. **Silent failures** - Invalid ops ignored (insufficient funds, double disputes, etc.)
+6. **Streaming** - Memory efficient, handles large files
 
 ## Test Coverage
 **Test files:**
@@ -29,7 +30,6 @@ cargo run -- transactions.csv > accounts.csv
 ## Assumptions
 
 - Transactions processed in file order (chronological)
-- Transaction IDs globally unique
 - Clients lazy-created on first transaction
 - Negative available allowed (withdraw then dispute deposit)
 - Output row order non-deterministic

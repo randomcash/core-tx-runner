@@ -2,7 +2,7 @@ pub mod csv_parser;
 pub mod types;
 
 use csv_parser::TransactionReader;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::process;
 use types::{Account, ClientId, StoredTransaction, TransactionId, TransactionType};
@@ -43,6 +43,9 @@ fn process_file(filename: &str) -> Result<HashMap<ClientId, Account>, Box<dyn st
     // Note: Withdrawals are not stored since they cannot be disputed
     let mut transactions: HashMap<TransactionId, StoredTransaction> = HashMap::new();
 
+    // Track all seen transaction IDs to enforce uniqueness
+    let mut seen_tx_ids: HashSet<TransactionId> = HashSet::new();
+
     // Open CSV file and stream records
     let reader = TransactionReader::from_file(filename)?;
 
@@ -54,7 +57,7 @@ fn process_file(filename: &str) -> Result<HashMap<ClientId, Account>, Box<dyn st
         };
 
         // Process this single transaction
-        process_transaction(record, &mut accounts, &mut transactions);
+        process_transaction(record, &mut accounts, &mut transactions, &mut seen_tx_ids);
     }
 
     Ok(accounts)
@@ -65,7 +68,20 @@ fn process_transaction(
     record: types::TransactionRecord,
     accounts: &mut HashMap<ClientId, Account>,
     transactions: &mut HashMap<TransactionId, StoredTransaction>,
+    seen_tx_ids: &mut HashSet<TransactionId>,
 ) {
+    // For deposits and withdrawals, enforce transaction ID uniqueness
+    match record.tx_type {
+        TransactionType::Deposit | TransactionType::Withdrawal => {
+            if !seen_tx_ids.insert(record.tx) {
+                // Transaction ID already exists - silently ignore this duplicate
+                return;
+            }
+        }
+        // Dispute/Resolve/Chargeback reference existing transactions, so don't check uniqueness
+        _ => {}
+    }
+
     // Get or create account for this client
     let account = accounts
         .entry(record.client)
